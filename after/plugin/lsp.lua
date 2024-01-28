@@ -11,9 +11,11 @@ local on_attach = function(_, bufnr)
 	bufmap("<leader>D", vim.lsp.buf.type_definition)
 	bufmap("K", vim.lsp.buf.hover)
 
-	bufmap("gr", require("telescope.builtin").lsp_references)
-	bufmap("<leader>s", require("telescope.builtin").lsp_document_symbols)
-	bufmap("<leader>S", require("telescope.builtin").lsp_dynamic_workspace_symbols)
+	local builtin = require "telescope.builtin"
+
+	bufmap("gr", builtin.lsp_references)
+	bufmap("<leader>s", builtin.lsp_document_symbols)
+	bufmap("<leader>S", builtin.lsp_dynamic_workspace_symbols)
 
 	vim.api.nvim_buf_create_user_command(bufnr, "Format", function(_)
 		vim.lsp.buf.format{}
@@ -23,21 +25,45 @@ end
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
 
+-- setup signature
+
+require("lsp_signature").setup {}
+
 -- setup lsps
+
+local lspconfig = require "lspconfig"
 
 require("mason").setup()
 require("mason-lspconfig").setup_handlers({
 	function(server_name)
-		require("lspconfig")[server_name].setup {
+		lspconfig[server_name].setup {
 			on_attach = on_attach,
 			capabilities = capabilities
 		}
 	end,
 
 	-- explicit ones
+	["gopls"] = function()
+		lspconfig.gopls.setup {
+			on_attach = on_attach,
+			capabilities = capabilities,
+			cmd = { "gopls" },
+			filetypes = { "go", "gomod", "gowork", "gotmpl" },
+			root_dir = require("lspconfig/util").root_pattern("go.work", "go.mod", ".git"),
+			settings = {
+				gopls = {
+					completeUnimported = true,
+					usePlaceholders = true,
+					analyses = {
+						unusedparams = true,
+					},
+				},
+			},
+		}
+	end,
 
 	["rust_analyzer"] = function()
-		require("lspconfig").rust_analyzer.setup{
+		lspconfig.rust_analyzer.setup {
 			settings = {
 				["rust-analyzer"] = {
 					diagnostics = {
@@ -49,12 +75,12 @@ require("mason-lspconfig").setup_handlers({
 	end,
 
 	["clangd"] = function()
-		require("lspconfig").clangd.setup{}
+		lspconfig.clangd.setup {}
 	end,
 
 	["lua_ls"] = function()
 		require("neodev").setup()
-		require("lspconfig").lua_ls.setup {
+		lspconfig.lua_ls.setup {
 			on_attach = on_attach,
 			capabilities = capabilities,
 			Lua = {
@@ -64,3 +90,10 @@ require("mason-lspconfig").setup_handlers({
 		}
 	end
 })
+
+-- setup outside mason since it's already installed
+
+lspconfig.glsl_analyzer.setup {
+	on_attach = on_attach,
+	capabilities = capabilities,
+}

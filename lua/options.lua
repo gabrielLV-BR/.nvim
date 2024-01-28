@@ -10,4 +10,4 @@ vim.o.shiftwidth = 4
 vim.o.updatetime = 300
 vim.o.termguicolors = true
 
-vim.o.mouise = 'a'
+vim.o.mouse = 'a'
