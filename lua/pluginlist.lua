@@ -4,6 +4,24 @@ return {
 	"neovim/nvim-lspconfig",
 	"folke/neodev.nvim", -- nvim's namespace for lua lsp
 	"numToStr/Comment.nvim",
+	"NvChad/nvterm",
+	"rcarriga/nvim-dap-ui",
+	{
+		"jay-babu/mason-nvim-dap.nvim",
+		event = "VeryLazy",
+		opts = {
+			handlers = {},
+		},
+	},
+	"mfussenegger/nvim-dap",
+	{
+		"leoluz/nvim-dap-go",
+		ft = "go",
+		dependencies = "mfussenegger/nvim-dap",
+		config = function (_, opts)
+			require("dap-go").setup(opts)
+		end
+	},
 	{
 		"nvim-neo-tree/neo-tree.nvim",
 		branch = "v3.x",
